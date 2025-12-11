@@ -203,6 +203,73 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* AI Features Coming Soon */}
+      <div className="mt-6 rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50 p-6 dark:border-purple-800/50 dark:from-purple-900/20 dark:to-indigo-900/20">
+        <div className="flex items-start gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/50">
+            <svg
+              className="h-6 w-6 text-purple-600 dark:text-purple-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+              />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              AI Features Coming Soon
+            </h2>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              Your Coaching OS is evolving into a full intelligence platform.
+            </p>
+            <ul className="mt-4 space-y-2">
+              <li className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <svg className="h-4 w-4 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span><strong>AI Session Summaries</strong> — instant notes & action items</span>
+              </li>
+              <li className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <svg className="h-4 w-4 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span><strong>AI Homework Generator</strong> — personalized practices & prompts</span>
+              </li>
+              <li className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <svg className="h-4 w-4 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span><strong>Client Insight Engine</strong> — emotional trends & breakthroughs</span>
+              </li>
+              <li className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <svg className="h-4 w-4 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span><strong>Smart Follow-Up Automations</strong> — reminders & nudges via email/WhatsApp</span>
+              </li>
+              <li className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <svg className="h-4 w-4 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span><strong>WhatsApp Micro-Coach</strong> — your clients get 24/7 support</span>
+              </li>
+            </ul>
+            <button className="mt-4 inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+              Join Early Access
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Programs Summary */}
         <div>

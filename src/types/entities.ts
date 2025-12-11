@@ -62,3 +62,42 @@ export interface Note {
   content: string;
   createdAt: Date;
 }
+
+// Homework entity - action items for clients
+export interface Homework {
+  id: string;
+  clientId: string;
+  sessionId?: string;
+  title: string;
+  description: string;
+  completed: boolean;
+  dueDate?: Date;
+  createdAt: Date;
+}
+
+// Check-in response structure
+export interface CheckInResponse {
+  question: string;
+  answer: string;
+}
+
+// Check-in entity - client self-reports
+export interface CheckIn {
+  id: string;
+  clientId: string;
+  responses: CheckInResponse[];
+  createdAt: Date;
+}
+
+// AI generation types
+export type AIGenerationType = 'summary' | 'homework' | 'checkin';
+
+// AI generation entity - stores AI-generated content
+export interface AIGeneration {
+  id: string;
+  type: AIGenerationType;
+  clientId?: string;
+  sessionId?: string;
+  content: string;
+  createdAt: Date;
+}
