@@ -6,8 +6,6 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import Button from "@/components/ui/button/Button";
-import { AISummaryButton } from "@/components/ai/AISummaryButton";
-import { AIHomeworkSuggestions } from "@/components/ai/AIHomeworkSuggestions";
 import {
   getClientById,
   getSessionsForClient,
@@ -51,8 +49,6 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
         title={client.name}
         actions={
           <div className="flex flex-wrap gap-2">
-            <AISummaryButton client={client} program={programs[0]} />
-            <AIHomeworkSuggestions client={client} program={programs[0]} />
             <Button size="sm" variant="outline">
               Schedule Session
             </Button>
