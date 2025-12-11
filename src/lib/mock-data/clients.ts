@@ -1,0 +1,53 @@
+import { Client } from "@/types/entities";
+
+export const mockClients: Client[] = [
+  {
+    id: "client-1",
+    coachId: "coach-1",
+    name: "Sarah Chen",
+    email: "sarah.chen@email.com",
+    phone: "+1 555-0101",
+    tags: ["VIP", "Executive"],
+    status: "active",
+    createdAt: new Date("2024-01-15"),
+  },
+  {
+    id: "client-2",
+    coachId: "coach-1",
+    name: "Michael Roberts",
+    email: "michael.r@email.com",
+    phone: "+1 555-0102",
+    tags: ["Career Change"],
+    status: "active",
+    createdAt: new Date("2024-02-20"),
+  },
+  {
+    id: "client-3",
+    coachId: "coach-1",
+    name: "Emily Watson",
+    email: "emily.watson@email.com",
+    tags: ["New"],
+    status: "lead",
+    createdAt: new Date("2024-11-01"),
+  },
+  {
+    id: "client-4",
+    coachId: "coach-1",
+    name: "David Kim",
+    email: "david.kim@email.com",
+    phone: "+1 555-0104",
+    tags: ["Leadership"],
+    status: "paused",
+    createdAt: new Date("2024-03-10"),
+  },
+  {
+    id: "client-5",
+    coachId: "coach-1",
+    name: "Jessica Martinez",
+    email: "jessica.m@email.com",
+    phone: "+1 555-0105",
+    tags: ["Executive", "Leadership"],
+    status: "completed",
+    createdAt: new Date("2023-06-01"),
+  },
+];
