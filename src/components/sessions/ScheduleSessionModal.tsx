@@ -1,18 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import Select from "@/components/form/Select";
-import { mockClients } from "@/lib/mock-data/clients";
-import { mockPrograms } from "@/lib/mock-data/programs";
+import { useClients, usePrograms } from "@/lib/store/useStore";
 
 interface ScheduleSessionModalProps {
   isOpen: boolean;
   onClose: () => void;
   preselectedClientId?: string;
+  preselectedDate?: string;
+  preselectedTime?: string;
   onSave?: (session: {
     clientId: string;
     programId: string;
@@ -42,23 +43,41 @@ export function ScheduleSessionModal({
   isOpen,
   onClose,
   preselectedClientId,
+  preselectedDate,
+  preselectedTime,
   onSave,
 }: ScheduleSessionModalProps) {
   const [clientId, setClientId] = useState(preselectedClientId || "");
   const [programId, setProgramId] = useState("");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
+  const [date, setDate] = useState(preselectedDate || "");
+  const [time, setTime] = useState(preselectedTime || "");
   const [duration, setDuration] = useState("60");
   const [location, setLocation] = useState("Zoom");
 
-  const clientOptions = mockClients.map((client) => ({
+  const { clients } = useClients();
+  const { programs } = usePrograms();
+
+  // Update form when preselected values change
+  useEffect(() => {
+    if (preselectedClientId) setClientId(preselectedClientId);
+  }, [preselectedClientId]);
+
+  useEffect(() => {
+    if (preselectedDate) setDate(preselectedDate);
+  }, [preselectedDate]);
+
+  useEffect(() => {
+    if (preselectedTime) setTime(preselectedTime);
+  }, [preselectedTime]);
+
+  const clientOptions = clients.map((client) => ({
     value: client.id,
     label: client.name,
   }));
 
   const programOptions = [
     { value: "", label: "No program" },
-    ...mockPrograms.map((program) => ({
+    ...programs.map((program) => ({
       value: program.id,
       label: program.name,
     })),
@@ -86,8 +105,8 @@ export function ScheduleSessionModal({
   const resetForm = () => {
     setClientId(preselectedClientId || "");
     setProgramId("");
-    setDate("");
-    setTime("");
+    setDate(preselectedDate || "");
+    setTime(preselectedTime || "");
     setDuration("60");
     setLocation("Zoom");
   };

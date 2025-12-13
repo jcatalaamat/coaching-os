@@ -153,3 +153,130 @@ export function getInitials(name: string): string {
     .toUpperCase()
     .slice(0, 2);
 }
+
+// ============ CALENDAR UTILITIES ============
+
+/**
+ * Check if two dates are the same day (ignoring time)
+ */
+export function isSameDay(date1: Date, date2: Date): boolean {
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  return (
+    d1.getDate() === d2.getDate() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getFullYear() === d2.getFullYear()
+  );
+}
+
+/**
+ * Get the start of a week (Sunday) for a given date
+ */
+export function getWeekStart(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  d.setDate(d.getDate() - day);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+/**
+ * Get the end of a week (Saturday 23:59:59) for a given date
+ */
+export function getWeekEnd(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  d.setDate(d.getDate() + (6 - day));
+  d.setHours(23, 59, 59, 999);
+  return d;
+}
+
+/**
+ * Get the start of a month for a given date
+ */
+export function getMonthStart(date: Date): Date {
+  const d = new Date(date);
+  d.setDate(1);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+/**
+ * Get the end of a month for a given date
+ */
+export function getMonthEnd(date: Date): Date {
+  const d = new Date(date);
+  d.setMonth(d.getMonth() + 1);
+  d.setDate(0);
+  d.setHours(23, 59, 59, 999);
+  return d;
+}
+
+/**
+ * Get array of 7 days for the week containing the given date
+ */
+export function getWeekDays(date: Date): Date[] {
+  const start = getWeekStart(date);
+  const days: Date[] = [];
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(start);
+    day.setDate(start.getDate() + i);
+    days.push(day);
+  }
+  return days;
+}
+
+/**
+ * Get array of days for calendar month grid (includes padding from prev/next months)
+ */
+export function getMonthDays(date: Date): Date[] {
+  const monthStart = getMonthStart(date);
+  const monthEnd = getMonthEnd(date);
+
+  // Start from the Sunday of the week containing the 1st
+  const calendarStart = getWeekStart(monthStart);
+
+  // End on the Saturday of the week containing the last day
+  const calendarEnd = getWeekEnd(monthEnd);
+
+  const days: Date[] = [];
+  const current = new Date(calendarStart);
+
+  while (current <= calendarEnd) {
+    days.push(new Date(current));
+    current.setDate(current.getDate() + 1);
+  }
+
+  return days;
+}
+
+/**
+ * Format month and year as "December 2024"
+ */
+export function formatMonthYear(date: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(date));
+}
+
+/**
+ * Format day of week as short name "Mon", "Tue", etc.
+ */
+export function formatDayOfWeek(date: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+  }).format(new Date(date));
+}
+
+/**
+ * Format hour as "9 AM", "12 PM", etc.
+ */
+export function formatHour(hour: number): string {
+  const date = new Date();
+  date.setHours(hour, 0, 0, 0);
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    hour12: true,
+  }).format(date);
+}

@@ -10,6 +10,7 @@ import {
   GridIcon,
   HorizontaLDots,
   ListIcon,
+  PlugInIcon,
   UserCircleIcon,
 } from "../icons/index";
 import { siteConfig } from "@/config/site";
@@ -34,6 +35,11 @@ const mainNavItems: NavItem[] = [
   },
   {
     icon: <CalenderIcon />,
+    name: "Calendar",
+    path: "/calendar",
+  },
+  {
+    icon: <ListIcon />,
     name: "Sessions",
     path: "/sessions",
   },
@@ -52,7 +58,7 @@ const settingsNavItems: NavItem[] = [
     path: "/billing",
   },
   {
-    icon: <ListIcon />,
+    icon: <PlugInIcon />,
     name: "Settings",
     path: "/settings",
   },
