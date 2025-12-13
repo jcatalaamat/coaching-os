@@ -7,13 +7,7 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import Button from "@/components/ui/button/Button";
 import { ScheduleSessionModal } from "@/components/sessions/ScheduleSessionModal";
 import { useModal } from "@/hooks/useModal";
-import { mockSessions } from "@/lib/mock-data/sessions";
-import {
-  getClientById,
-  getProgramById,
-  filterSessionsByStatus,
-  filterSessionsByDateRange,
-} from "@/lib/utils/helpers";
+import { useSessions, useClients, usePrograms } from "@/lib/store/useStore";
 import {
   formatDateTime,
   formatDuration,
@@ -28,19 +22,23 @@ export default function SessionsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const { isOpen: isScheduleModalOpen, openModal: openScheduleModal, closeModal: closeScheduleModal } = useModal();
 
+  const { sessions, addSession, filterSessionsByStatus, filterSessionsByDateRange } = useSessions();
+  const { getClientById } = useClients();
+  const { getProgramById } = usePrograms();
+
   const filteredSessions = useMemo(() => {
-    let sessions = [...mockSessions];
+    let filtered = [...sessions];
 
     // Apply date range filter
-    sessions = filterSessionsByDateRange(sessions, dateRange);
+    filtered = filterSessionsByDateRange(filtered, dateRange);
 
     // Apply status filter
     if (statusFilter !== "all") {
-      sessions = filterSessionsByStatus(sessions, statusFilter);
+      filtered = filterSessionsByStatus(filtered, statusFilter);
     }
 
     // Sort: upcoming first, then by date
-    sessions.sort((a, b) => {
+    filtered.sort((a, b) => {
       const now = new Date();
       const aIsFuture = a.dateTime > now;
       const bIsFuture = b.dateTime > now;
@@ -55,14 +53,14 @@ export default function SessionsPage() {
       return b.dateTime.getTime() - a.dateTime.getTime();
     });
 
-    return sessions;
-  }, [dateRange, statusFilter]);
+    return filtered;
+  }, [dateRange, statusFilter, sessions, filterSessionsByDateRange, filterSessionsByStatus]);
 
   // Stats
-  const totalSessions = mockSessions.length;
-  const scheduledCount = mockSessions.filter((s) => s.status === "scheduled").length;
-  const completedCount = mockSessions.filter((s) => s.status === "completed").length;
-  const cancelledCount = mockSessions.filter((s) => s.status === "cancelled").length;
+  const totalSessions = sessions.length;
+  const scheduledCount = sessions.filter((s) => s.status === "scheduled").length;
+  const completedCount = sessions.filter((s) => s.status === "completed").length;
+  const cancelledCount = sessions.filter((s) => s.status === "cancelled").length;
 
   return (
     <>
@@ -79,9 +77,16 @@ export default function SessionsPage() {
       <ScheduleSessionModal
         isOpen={isScheduleModalOpen}
         onClose={closeScheduleModal}
-        onSave={(session) => {
-          console.log("New session:", session);
-          alert(`Session scheduled! (Demo only - not persisted)`);
+        onSave={(sessionData) => {
+          const dateTime = new Date(`${sessionData.date}T${sessionData.time}`);
+          addSession({
+            clientId: sessionData.clientId,
+            programId: sessionData.programId || undefined,
+            dateTime,
+            durationMinutes: sessionData.duration,
+            status: "scheduled",
+            location: sessionData.location,
+          });
         }}
       />
 

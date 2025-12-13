@@ -8,13 +8,8 @@ import Button from "@/components/ui/button/Button";
 import { AddClientModal } from "@/components/clients/AddClientModal";
 import { EditClientModal } from "@/components/clients/EditClientModal";
 import { useModal } from "@/hooks/useModal";
-import { mockClients } from "@/lib/mock-data/clients";
+import { useClients, useSessions } from "@/lib/store/useStore";
 import { Client } from "@/types/entities";
-import {
-  getLastSessionForClient,
-  getNextSessionForClient,
-  getClientCountsByStatus,
-} from "@/lib/utils/helpers";
 import {
   formatDate,
   formatRelativeTime,
@@ -27,16 +22,19 @@ export default function ClientsPage() {
   const { isOpen: isAddModalOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
   const { isOpen: isEditModalOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
 
+  const { clients, addClient, updateClient, getClientCountsByStatus } = useClients();
+  const { getLastSessionForClient, getNextSessionForClient } = useSessions();
+
   const filteredClients = useMemo(() => {
-    if (!searchQuery.trim()) return mockClients;
+    if (!searchQuery.trim()) return clients;
     const query = searchQuery.toLowerCase();
-    return mockClients.filter(
+    return clients.filter(
       (client) =>
         client.name.toLowerCase().includes(query) ||
         client.email?.toLowerCase().includes(query) ||
         client.tags.some((tag) => tag.toLowerCase().includes(query))
     );
-  }, [searchQuery]);
+  }, [searchQuery, clients]);
 
   const statusCounts = getClientCountsByStatus();
 
@@ -55,10 +53,8 @@ export default function ClientsPage() {
       <AddClientModal
         isOpen={isAddModalOpen}
         onClose={closeAddModal}
-        onSave={(client) => {
-          console.log("New client:", client);
-          // In a real app, this would save to the database
-          alert(`Client "${client.name}" added! (Demo only - not persisted)`);
+        onSave={(clientData) => {
+          addClient(clientData);
         }}
       />
 
@@ -69,16 +65,15 @@ export default function ClientsPage() {
           setEditingClient(null);
         }}
         client={editingClient}
-        onSave={(client) => {
-          console.log("Updated client:", client);
-          alert(`Client "${client.name}" updated! (Demo only - not persisted)`);
+        onSave={(clientData) => {
+          updateClient(clientData.id, clientData);
         }}
       />
 
       {/* Stats Summary */}
       <div className="mb-6 flex flex-wrap gap-4 text-sm">
         <span className="text-gray-600 dark:text-gray-400">
-          Total: <strong className="text-gray-900 dark:text-white">{mockClients.length}</strong>
+          Total: <strong className="text-gray-900 dark:text-white">{clients.length}</strong>
         </span>
         <span className="text-gray-300 dark:text-gray-600">|</span>
         <span className="text-green-600 dark:text-green-400">

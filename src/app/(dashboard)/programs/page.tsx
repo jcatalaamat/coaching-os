@@ -4,8 +4,7 @@ import { PageHeader } from "@/components/common/PageHeader";
 import Button from "@/components/ui/button/Button";
 import { CreateProgramModal } from "@/components/programs/CreateProgramModal";
 import { useModal } from "@/hooks/useModal";
-import { mockPrograms } from "@/lib/mock-data/programs";
-import { getClientsInProgramCount } from "@/lib/utils/helpers";
+import { usePrograms } from "@/lib/store/useStore";
 import { formatCurrency } from "@/lib/utils/formatters";
 
 const programTypeColors: Record<string, string> = {
@@ -16,6 +15,7 @@ const programTypeColors: Record<string, string> = {
 
 export default function ProgramsPage() {
   const { isOpen: isCreateModalOpen, openModal: openCreateModal, closeModal: closeCreateModal } = useModal();
+  const { programs, addProgram, getClientsInProgramCount } = usePrograms();
 
   return (
     <>
@@ -32,33 +32,39 @@ export default function ProgramsPage() {
       <CreateProgramModal
         isOpen={isCreateModalOpen}
         onClose={closeCreateModal}
-        onSave={(program) => {
-          console.log("New program:", program);
-          alert(`Program "${program.name}" created! (Demo only - not persisted)`);
+        onSave={(programData) => {
+          addProgram({
+            name: programData.name,
+            description: programData.description,
+            type: programData.type as "1:1" | "group" | "hybrid",
+            price: programData.price,
+            currency: programData.currency as "USD" | "EUR" | "GBP",
+            numberOfSessions: programData.numberOfSessions || undefined,
+          });
         }}
       />
 
       {/* Stats Summary */}
       <div className="mb-6 flex flex-wrap gap-4 text-sm">
         <span className="text-gray-600 dark:text-gray-400">
-          Total Programs: <strong className="text-gray-900 dark:text-white">{mockPrograms.length}</strong>
+          Total Programs: <strong className="text-gray-900 dark:text-white">{programs.length}</strong>
         </span>
         <span className="text-gray-300 dark:text-gray-600">|</span>
         <span className="text-blue-600 dark:text-blue-400">
-          1:1: <strong>{mockPrograms.filter((p) => p.type === "1:1").length}</strong>
+          1:1: <strong>{programs.filter((p) => p.type === "1:1").length}</strong>
         </span>
         <span className="text-purple-600 dark:text-purple-400">
-          Group: <strong>{mockPrograms.filter((p) => p.type === "group").length}</strong>
+          Group: <strong>{programs.filter((p) => p.type === "group").length}</strong>
         </span>
         <span className="text-amber-600 dark:text-amber-400">
-          Hybrid: <strong>{mockPrograms.filter((p) => p.type === "hybrid").length}</strong>
+          Hybrid: <strong>{programs.filter((p) => p.type === "hybrid").length}</strong>
         </span>
       </div>
 
       {/* Programs Grid */}
-      {mockPrograms.length > 0 ? (
+      {programs.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {mockPrograms.map((program) => {
+          {programs.map((program) => {
             const clientCount = getClientsInProgramCount(program.id);
 
             return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useMemo } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -9,14 +9,7 @@ import Button from "@/components/ui/button/Button";
 import { ScheduleSessionModal } from "@/components/sessions/ScheduleSessionModal";
 import { AddNoteModal } from "@/components/notes/AddNoteModal";
 import { useModal } from "@/hooks/useModal";
-import {
-  getClientById,
-  getSessionsForClient,
-  getNotesForClient,
-  getProgramById,
-  getUpcomingSessions,
-  getPastSessions,
-} from "@/lib/utils/helpers";
+import { useClients, useSessions, useNotes, usePrograms } from "@/lib/store/useStore";
 import {
   formatDate,
   formatDateTime,
@@ -31,22 +24,35 @@ interface ClientDetailPageProps {
 
 export default function ClientDetailPage({ params }: ClientDetailPageProps) {
   const { clientId } = use(params);
-  const client = getClientById(clientId);
   const { isOpen: isScheduleModalOpen, openModal: openScheduleModal, closeModal: closeScheduleModal } = useModal();
   const { isOpen: isNoteModalOpen, openModal: openNoteModal, closeModal: closeNoteModal } = useModal();
+
+  const { getClientById } = useClients();
+  const { getSessionsForClient, getUpcomingSessions, getPastSessions, addSession } = useSessions();
+  const { getNotesForClient, addNote } = useNotes();
+  const { getProgramById } = usePrograms();
+
+  const client = getClientById(clientId);
+
+  const { allSessions, upcomingSessions, pastSessions, notes, programs } = useMemo(() => {
+    if (!client) {
+      return { allSessions: [], upcomingSessions: [], pastSessions: [], notes: [], programs: [] };
+    }
+    const allSessions = getSessionsForClient(clientId);
+    const upcomingSessions = getUpcomingSessions(clientId);
+    const pastSessions = getPastSessions(clientId);
+    const notes = getNotesForClient(clientId);
+
+    // Get unique program IDs from sessions
+    const programIds = [...new Set(allSessions.map((s) => s.programId).filter(Boolean))];
+    const programs = programIds.map((id) => getProgramById(id!)).filter(Boolean);
+
+    return { allSessions, upcomingSessions, pastSessions, notes, programs };
+  }, [client, clientId, getSessionsForClient, getUpcomingSessions, getPastSessions, getNotesForClient, getProgramById]);
 
   if (!client) {
     notFound();
   }
-
-  const allSessions = getSessionsForClient(clientId);
-  const upcomingSessions = getUpcomingSessions(clientId);
-  const pastSessions = getPastSessions(clientId);
-  const notes = getNotesForClient(clientId);
-
-  // Get unique program IDs from sessions
-  const programIds = [...new Set(allSessions.map((s) => s.programId).filter(Boolean))];
-  const programs = programIds.map((id) => getProgramById(id!)).filter(Boolean);
 
   return (
     <>
@@ -91,9 +97,16 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
         isOpen={isScheduleModalOpen}
         onClose={closeScheduleModal}
         preselectedClientId={clientId}
-        onSave={(session) => {
-          console.log("New session:", session);
-          alert(`Session scheduled for ${client.name}! (Demo only - not persisted)`);
+        onSave={(sessionData) => {
+          const dateTime = new Date(`${sessionData.date}T${sessionData.time}`);
+          addSession({
+            clientId: sessionData.clientId,
+            programId: sessionData.programId || undefined,
+            dateTime,
+            durationMinutes: sessionData.duration,
+            status: "scheduled",
+            location: sessionData.location,
+          });
         }}
       />
 
@@ -101,9 +114,13 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
         isOpen={isNoteModalOpen}
         onClose={closeNoteModal}
         clientId={clientId}
-        onSave={(note) => {
-          console.log("New note:", note);
-          alert(`Note saved for ${client.name}! (Demo only - not persisted)`);
+        onSave={(noteData) => {
+          addNote({
+            clientId: clientId,
+            sessionId: noteData.sessionId || undefined,
+            title: noteData.title || undefined,
+            content: noteData.content,
+          });
         }}
       />
 

@@ -1,17 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { mockClients } from "@/lib/mock-data/clients";
-import { mockPrograms } from "@/lib/mock-data/programs";
-import {
-  getTodaySessions,
-  getThisWeekSessions,
-  getActiveClientsCount,
-  getRecentNotes,
-  getClientById,
-  getProgramById,
-  getClientsInProgramCount,
-} from "@/lib/utils/helpers";
+import { useClients, useSessions, useNotes, usePrograms } from "@/lib/store/useStore";
 import {
   formatTime,
   formatDuration,
@@ -21,9 +13,15 @@ import {
 } from "@/lib/utils/formatters";
 
 export default function DashboardPage() {
+  const { clients, getClientById, getClientCountsByStatus } = useClients();
+  const { getTodaySessions, getThisWeekSessions } = useSessions();
+  const { getRecentNotes } = useNotes();
+  const { programs, getProgramById, getClientsInProgramCount } = usePrograms();
+
   const todaySessions = getTodaySessions();
   const thisWeekSessions = getThisWeekSessions();
-  const activeClients = getActiveClientsCount();
+  const statusCounts = getClientCountsByStatus();
+  const activeClients = statusCounts.active || 0;
   const recentNotes = getRecentNotes(5);
 
   return (
@@ -85,7 +83,7 @@ export default function DashboardPage() {
                 Total Clients
               </p>
               <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-                {mockClients.length}
+                {clients.length}
               </p>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-500/10">
@@ -169,7 +167,7 @@ export default function DashboardPage() {
                 Active Programs
               </p>
               <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-                {mockPrograms.length}
+                {programs.length}
               </p>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-50 dark:bg-orange-500/10">
@@ -253,7 +251,7 @@ export default function DashboardPage() {
             Programs Summary
           </h2>
           <div className="space-y-3">
-            {mockPrograms.slice(0, 4).map((program) => (
+            {programs.slice(0, 4).map((program) => (
               <div
                 key={program.id}
                 className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]"
