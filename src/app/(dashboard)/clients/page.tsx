@@ -5,7 +5,11 @@ import Link from "next/link";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import Button from "@/components/ui/button/Button";
+import { AddClientModal } from "@/components/clients/AddClientModal";
+import { EditClientModal } from "@/components/clients/EditClientModal";
+import { useModal } from "@/hooks/useModal";
 import { mockClients } from "@/lib/mock-data/clients";
+import { Client } from "@/types/entities";
 import {
   getLastSessionForClient,
   getNextSessionForClient,
@@ -19,6 +23,9 @@ import {
 
 export default function ClientsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const { isOpen: isAddModalOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
+  const { isOpen: isEditModalOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
 
   const filteredClients = useMemo(() => {
     if (!searchQuery.trim()) return mockClients;
@@ -39,10 +46,33 @@ export default function ClientsPage() {
         title="Clients"
         description="Manage your coaching clients"
         actions={
-          <Button size="sm">
+          <Button size="sm" onClick={openAddModal}>
             Add Client
           </Button>
         }
+      />
+
+      <AddClientModal
+        isOpen={isAddModalOpen}
+        onClose={closeAddModal}
+        onSave={(client) => {
+          console.log("New client:", client);
+          // In a real app, this would save to the database
+          alert(`Client "${client.name}" added! (Demo only - not persisted)`);
+        }}
+      />
+
+      <EditClientModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          closeEditModal();
+          setEditingClient(null);
+        }}
+        client={editingClient}
+        onSave={(client) => {
+          console.log("Updated client:", client);
+          alert(`Client "${client.name}" updated! (Demo only - not persisted)`);
+        }}
       />
 
       {/* Stats Summary */}
@@ -96,6 +126,9 @@ export default function ClientsPage() {
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
                   Next Session
+                </th>
+                <th className="px-6 py-4 text-right text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -163,13 +196,25 @@ export default function ClientsPage() {
                           <span className="text-gray-400">None scheduled</span>
                         )}
                       </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setEditingClient(client);
+                            openEditModal();
+                          }}
+                          className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                        >
+                          Edit
+                        </button>
+                      </td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
                   >
                     {searchQuery

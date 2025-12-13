@@ -5,6 +5,8 @@ import Link from "next/link";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import Button from "@/components/ui/button/Button";
+import { ScheduleSessionModal } from "@/components/sessions/ScheduleSessionModal";
+import { useModal } from "@/hooks/useModal";
 import { mockSessions } from "@/lib/mock-data/sessions";
 import {
   getClientById,
@@ -24,6 +26,7 @@ type StatusFilter = "all" | "scheduled" | "completed" | "cancelled";
 export default function SessionsPage() {
   const [dateRange, setDateRange] = useState<DateRange>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const { isOpen: isScheduleModalOpen, openModal: openScheduleModal, closeModal: closeScheduleModal } = useModal();
 
   const filteredSessions = useMemo(() => {
     let sessions = [...mockSessions];
@@ -67,10 +70,19 @@ export default function SessionsPage() {
         title="Sessions"
         description="View and manage all your coaching sessions"
         actions={
-          <Button size="sm">
+          <Button size="sm" onClick={openScheduleModal}>
             Schedule Session
           </Button>
         }
+      />
+
+      <ScheduleSessionModal
+        isOpen={isScheduleModalOpen}
+        onClose={closeScheduleModal}
+        onSave={(session) => {
+          console.log("New session:", session);
+          alert(`Session scheduled! (Demo only - not persisted)`);
+        }}
       />
 
       {/* Stats Summary */}

@@ -2,6 +2,8 @@
 
 import { PageHeader } from "@/components/common/PageHeader";
 import Button from "@/components/ui/button/Button";
+import { CreateProgramModal } from "@/components/programs/CreateProgramModal";
+import { useModal } from "@/hooks/useModal";
 import { mockPrograms } from "@/lib/mock-data/programs";
 import { getClientsInProgramCount } from "@/lib/utils/helpers";
 import { formatCurrency } from "@/lib/utils/formatters";
@@ -13,16 +15,27 @@ const programTypeColors: Record<string, string> = {
 };
 
 export default function ProgramsPage() {
+  const { isOpen: isCreateModalOpen, openModal: openCreateModal, closeModal: closeCreateModal } = useModal();
+
   return (
     <>
       <PageHeader
         title="Programs"
         description="Manage your coaching programs and packages"
         actions={
-          <Button size="sm">
+          <Button size="sm" onClick={openCreateModal}>
             Create Program
           </Button>
         }
+      />
+
+      <CreateProgramModal
+        isOpen={isCreateModalOpen}
+        onClose={closeCreateModal}
+        onSave={(program) => {
+          console.log("New program:", program);
+          alert(`Program "${program.name}" created! (Demo only - not persisted)`);
+        }}
       />
 
       {/* Stats Summary */}

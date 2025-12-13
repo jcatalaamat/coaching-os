@@ -6,6 +6,9 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import Button from "@/components/ui/button/Button";
+import { ScheduleSessionModal } from "@/components/sessions/ScheduleSessionModal";
+import { AddNoteModal } from "@/components/notes/AddNoteModal";
+import { useModal } from "@/hooks/useModal";
 import {
   getClientById,
   getSessionsForClient,
@@ -29,6 +32,8 @@ interface ClientDetailPageProps {
 export default function ClientDetailPage({ params }: ClientDetailPageProps) {
   const { clientId } = use(params);
   const client = getClientById(clientId);
+  const { isOpen: isScheduleModalOpen, openModal: openScheduleModal, closeModal: closeScheduleModal } = useModal();
+  const { isOpen: isNoteModalOpen, openModal: openNoteModal, closeModal: closeNoteModal } = useModal();
 
   if (!client) {
     notFound();
@@ -74,12 +79,32 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
               </svg>
               View as Client
             </Link>
-            <Button size="sm" variant="outline">
+            <Button size="sm" variant="outline" onClick={openScheduleModal}>
               Schedule Session
             </Button>
-            <Button size="sm">New Note</Button>
+            <Button size="sm" onClick={openNoteModal}>New Note</Button>
           </div>
         }
+      />
+
+      <ScheduleSessionModal
+        isOpen={isScheduleModalOpen}
+        onClose={closeScheduleModal}
+        preselectedClientId={clientId}
+        onSave={(session) => {
+          console.log("New session:", session);
+          alert(`Session scheduled for ${client.name}! (Demo only - not persisted)`);
+        }}
+      />
+
+      <AddNoteModal
+        isOpen={isNoteModalOpen}
+        onClose={closeNoteModal}
+        clientId={clientId}
+        onSave={(note) => {
+          console.log("New note:", note);
+          alert(`Note saved for ${client.name}! (Demo only - not persisted)`);
+        }}
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
