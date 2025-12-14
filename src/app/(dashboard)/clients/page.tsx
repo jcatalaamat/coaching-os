@@ -9,6 +9,7 @@ import { AddClientModal } from "@/components/clients/AddClientModal";
 import { EditClientModal } from "@/components/clients/EditClientModal";
 import { useModal } from "@/hooks/useModal";
 import { useClients, useSessions } from "@/lib/store/useStore";
+import { useToast } from "@/context/ToastContext";
 import { Client } from "@/types/entities";
 import {
   formatDate,
@@ -22,6 +23,7 @@ export default function ClientsPage() {
   const { isOpen: isAddModalOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
   const { isOpen: isEditModalOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
 
+  const { showToast } = useToast();
   const { clients, addClient, updateClient, deleteClient, getClientCountsByStatus } = useClients();
   const { getLastSessionForClient, getNextSessionForClient } = useSessions();
 
@@ -41,6 +43,7 @@ export default function ClientsPage() {
   const handleDeleteClient = (client: Client) => {
     if (confirm(`Are you sure you want to delete "${client.name}"? This will also delete all their sessions and notes. This cannot be undone.`)) {
       deleteClient(client.id);
+      showToast("Client deleted", "info");
     }
   };
 
@@ -61,6 +64,7 @@ export default function ClientsPage() {
         onClose={closeAddModal}
         onSave={(clientData) => {
           addClient(clientData);
+          showToast("Client added successfully");
         }}
       />
 
@@ -73,6 +77,7 @@ export default function ClientsPage() {
         client={editingClient}
         onSave={(clientData) => {
           updateClient(clientData.id, clientData);
+          showToast("Client updated successfully");
         }}
       />
 

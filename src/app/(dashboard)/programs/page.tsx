@@ -7,6 +7,7 @@ import { CreateProgramModal } from "@/components/programs/CreateProgramModal";
 import { EditProgramModal } from "@/components/programs/EditProgramModal";
 import { useModal } from "@/hooks/useModal";
 import { usePrograms } from "@/lib/store/useStore";
+import { useToast } from "@/context/ToastContext";
 import { Program } from "@/types/entities";
 import { formatCurrency } from "@/lib/utils/formatters";
 
@@ -20,6 +21,7 @@ export default function ProgramsPage() {
   const [editingProgram, setEditingProgram] = useState<Program | null>(null);
   const { isOpen: isCreateModalOpen, openModal: openCreateModal, closeModal: closeCreateModal } = useModal();
   const { isOpen: isEditModalOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
+  const { showToast } = useToast();
   const { programs, addProgram, updateProgram, deleteProgram, getClientsInProgramCount } = usePrograms();
 
   const handleEditClick = (program: Program) => {
@@ -56,6 +58,7 @@ export default function ProgramsPage() {
             currency: programData.currency as "USD" | "EUR" | "GBP",
             numberOfSessions: programData.numberOfSessions || undefined,
           });
+          showToast("Program created successfully");
         }}
       />
 
@@ -65,9 +68,11 @@ export default function ProgramsPage() {
         program={editingProgram}
         onSave={(programData) => {
           updateProgram(programData.id, programData);
+          showToast("Program updated successfully");
         }}
         onDelete={(programId) => {
           deleteProgram(programId);
+          showToast("Program deleted", "info");
         }}
       />
 

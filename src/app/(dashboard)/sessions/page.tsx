@@ -9,6 +9,7 @@ import { ScheduleSessionModal } from "@/components/sessions/ScheduleSessionModal
 import { SessionDetailsModal } from "@/components/sessions/SessionDetailsModal";
 import { useModal } from "@/hooks/useModal";
 import { useSessions, useClients, usePrograms } from "@/lib/store/useStore";
+import { useToast } from "@/context/ToastContext";
 import { Session } from "@/types/entities";
 import {
   formatDateTime,
@@ -27,6 +28,7 @@ export default function SessionsPage() {
   const { isOpen: isScheduleModalOpen, openModal: openScheduleModal, closeModal: closeScheduleModal } = useModal();
   const { isOpen: isDetailsModalOpen, openModal: openDetailsModal, closeModal: closeDetailsModal } = useModal();
 
+  const { showToast } = useToast();
   const { sessions, addSession, filterSessionsByStatus, filterSessionsByDateRange } = useSessions();
   const { getClientById } = useClients();
   const { getProgramById } = usePrograms();
@@ -102,6 +104,7 @@ export default function SessionsPage() {
             status: "scheduled",
             location: sessionData.location,
           });
+          showToast("Session scheduled successfully");
         }}
       />
 

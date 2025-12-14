@@ -9,6 +9,7 @@ import { ScheduleSessionModal } from "@/components/sessions/ScheduleSessionModal
 import { SessionDetailsModal } from "@/components/sessions/SessionDetailsModal";
 import { useModal } from "@/hooks/useModal";
 import { useClients, useSessions } from "@/lib/store/useStore";
+import { useToast } from "@/context/ToastContext";
 import { Session } from "@/types/entities";
 import {
   getWeekStart,
@@ -28,6 +29,7 @@ export default function CalendarPage() {
 
   const { isOpen: isScheduleOpen, openModal: openScheduleModal, closeModal: closeScheduleModal } = useModal();
   const { isOpen: isDetailsOpen, openModal: openDetailsModal, closeModal: closeDetailsModal } = useModal();
+  const { showToast } = useToast();
   const { sessions, addSession } = useSessions();
   const { getClientById } = useClients();
 
@@ -160,6 +162,7 @@ export default function CalendarPage() {
             status: "scheduled",
             location: sessionData.location,
           });
+          showToast("Session scheduled successfully");
         }}
       />
 
