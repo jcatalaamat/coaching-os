@@ -21,6 +21,7 @@ type DateRange = "all" | "today" | "week" | "month";
 type StatusFilter = "all" | "scheduled" | "completed" | "cancelled";
 
 export default function SessionsPage() {
+  const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState<DateRange>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
@@ -35,6 +36,15 @@ export default function SessionsPage() {
 
   const filteredSessions = useMemo(() => {
     let filtered = [...sessions];
+
+    // Apply search filter by client name
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((session) => {
+        const client = getClientById(session.clientId);
+        return client?.name.toLowerCase().includes(query);
+      });
+    }
 
     // Apply date range filter
     filtered = filterSessionsByDateRange(filtered, dateRange);
@@ -61,7 +71,7 @@ export default function SessionsPage() {
     });
 
     return filtered;
-  }, [dateRange, statusFilter, sessions, filterSessionsByDateRange, filterSessionsByStatus]);
+  }, [searchQuery, dateRange, statusFilter, sessions, getClientById, filterSessionsByDateRange, filterSessionsByStatus]);
 
   // Stats
   const totalSessions = sessions.length;
@@ -131,8 +141,15 @@ export default function SessionsPage() {
         </span>
       </div>
 
-      {/* Filters */}
+      {/* Search and Filters */}
       <div className="mb-6 flex flex-wrap gap-4">
+        <input
+          type="text"
+          placeholder="Search by client name..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full max-w-xs rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30"
+        />
         <select
           value={dateRange}
           onChange={(e) => setDateRange(e.target.value as DateRange)}
@@ -156,8 +173,64 @@ export default function SessionsPage() {
         </select>
       </div>
 
-      {/* Sessions Table */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3">
+        {filteredSessions.length > 0 ? (
+          filteredSessions.map((session) => {
+            const client = getClientById(session.clientId);
+            const program = session.programId ? getProgramById(session.programId) : null;
+
+            return (
+              <div
+                key={session.id}
+                onClick={() => handleSessionClick(session)}
+                className="cursor-pointer rounded-xl border border-gray-200 bg-white p-4 transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-white/[0.03]"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    {client && (
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                        {getInitials(client.name)}
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {client?.name || "Unknown Client"}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {formatDateTime(session.dateTime)}
+                      </p>
+                    </div>
+                  </div>
+                  <StatusBadge status={session.status} />
+                </div>
+                <div className="mt-3 flex flex-wrap gap-3 text-sm text-gray-500 dark:text-gray-400">
+                  <span>{formatDuration(session.durationMinutes)}</span>
+                  <span>•</span>
+                  <span>{session.location}</span>
+                  {program && (
+                    <>
+                      <span>•</span>
+                      <span>{program.name}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="rounded-xl border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+            <p className="text-gray-500 dark:text-gray-400">
+              {searchQuery || dateRange !== "all" || statusFilter !== "all"
+                ? "No sessions match your filters."
+                : "No sessions scheduled yet."}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -240,7 +313,7 @@ export default function SessionsPage() {
                     colSpan={6}
                     className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
                   >
-                    {dateRange !== "all" || statusFilter !== "all"
+                    {searchQuery || dateRange !== "all" || statusFilter !== "all"
                       ? "No sessions match your filters."
                       : "No sessions scheduled yet."}
                   </td>

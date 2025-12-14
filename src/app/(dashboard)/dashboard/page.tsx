@@ -14,15 +14,24 @@ import {
 
 export default function DashboardPage() {
   const { clients, getClientById, getClientCountsByStatus } = useClients();
-  const { getTodaySessions, getThisWeekSessions } = useSessions();
+  const { sessions, getTodaySessions, getThisWeekSessions, getThisMonthSessions } = useSessions();
   const { getRecentNotes } = useNotes();
   const { programs, getProgramById, getClientsInProgramCount } = usePrograms();
 
   const todaySessions = getTodaySessions();
   const thisWeekSessions = getThisWeekSessions();
+  const thisMonthSessions = getThisMonthSessions();
   const statusCounts = getClientCountsByStatus();
   const activeClients = statusCounts.active || 0;
   const recentNotes = getRecentNotes(5);
+
+  // Calculate completed sessions this month
+  const completedThisMonth = thisMonthSessions.filter(s => s.status === "completed").length;
+
+  // Calculate total hours coached this month
+  const hoursThisMonth = thisMonthSessions
+    .filter(s => s.status === "completed")
+    .reduce((total, s) => total + s.durationMinutes, 0) / 60;
 
   return (
     <>
@@ -75,7 +84,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
           <div className="flex items-center justify-between">
             <div>
@@ -84,6 +93,9 @@ export default function DashboardPage() {
               </p>
               <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
                 {clients.length}
+              </p>
+              <p className="mt-1 text-xs text-gray-400">
+                {activeClients} active
               </p>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-500/10">
@@ -108,38 +120,13 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                Active Clients
-              </p>
-              <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-                {activeClients}
-              </p>
-            </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50 dark:bg-green-500/10">
-              <svg
-                className="h-6 w-6 text-green-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Sessions This Week
               </p>
               <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
                 {thisWeekSessions.length}
+              </p>
+              <p className="mt-1 text-xs text-gray-400">
+                {todaySessions.length} today
               </p>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-50 dark:bg-purple-500/10">
@@ -164,10 +151,44 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Completed This Month
+              </p>
+              <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+                {completedThisMonth}
+              </p>
+              <p className="mt-1 text-xs text-gray-400">
+                {hoursThisMonth.toFixed(1)} hours coached
+              </p>
+            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50 dark:bg-green-500/10">
+              <svg
+                className="h-6 w-6 text-green-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Active Programs
               </p>
               <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
                 {programs.length}
+              </p>
+              <p className="mt-1 text-xs text-gray-400">
+                {programs.filter(p => p.type === "1:1").length} one-on-one
               </p>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-50 dark:bg-orange-500/10">
@@ -187,6 +208,67 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Client Status Breakdown */}
+      <div className="mt-6 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <h3 className="mb-4 text-sm font-medium text-gray-500 dark:text-gray-400">
+          Client Status Breakdown
+        </h3>
+        <div className="flex flex-wrap items-center gap-4 md:gap-6">
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 rounded-full bg-green-500" />
+            <span className="text-sm text-gray-600 dark:text-gray-300">
+              Active ({statusCounts.active || 0})
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 rounded-full bg-purple-500" />
+            <span className="text-sm text-gray-600 dark:text-gray-300">
+              Leads ({statusCounts.lead || 0})
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 rounded-full bg-yellow-500" />
+            <span className="text-sm text-gray-600 dark:text-gray-300">
+              Paused ({statusCounts.paused || 0})
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-3 w-3 rounded-full bg-blue-500" />
+            <span className="text-sm text-gray-600 dark:text-gray-300">
+              Completed ({statusCounts.completed || 0})
+            </span>
+          </div>
+        </div>
+        {clients.length > 0 && (
+          <div className="mt-4 flex h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+            {(statusCounts.active || 0) > 0 && (
+              <div
+                className="h-full bg-green-500"
+                style={{ width: `${((statusCounts.active || 0) / clients.length) * 100}%` }}
+              />
+            )}
+            {(statusCounts.lead || 0) > 0 && (
+              <div
+                className="h-full bg-purple-500"
+                style={{ width: `${((statusCounts.lead || 0) / clients.length) * 100}%` }}
+              />
+            )}
+            {(statusCounts.paused || 0) > 0 && (
+              <div
+                className="h-full bg-yellow-500"
+                style={{ width: `${((statusCounts.paused || 0) / clients.length) * 100}%` }}
+              />
+            )}
+            {(statusCounts.completed || 0) > 0 && (
+              <div
+                className="h-full bg-blue-500"
+                style={{ width: `${((statusCounts.completed || 0) / clients.length) * 100}%` }}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {/* Today's Schedule */}

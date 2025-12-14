@@ -110,6 +110,7 @@ export function useSessions() {
     getPastSessions: store.getPastSessions,
     getTodaySessions: store.getTodaySessions,
     getThisWeekSessions: store.getThisWeekSessions,
+    getThisMonthSessions: store.getThisMonthSessions,
     getLastSessionForClient: store.getLastSessionForClient,
     getNextSessionForClient: store.getNextSessionForClient,
     filterSessionsByStatus: store.filterSessionsByStatus,

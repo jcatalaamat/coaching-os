@@ -7,7 +7,9 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import Button from "@/components/ui/button/Button";
 import { AddClientModal } from "@/components/clients/AddClientModal";
 import { EditClientModal } from "@/components/clients/EditClientModal";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog/ConfirmDialog";
 import { useModal } from "@/hooks/useModal";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useClients, useSessions } from "@/lib/store/useStore";
 import { useToast } from "@/context/ToastContext";
 import { Client } from "@/types/entities";
@@ -22,6 +24,7 @@ export default function ClientsPage() {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const { isOpen: isAddModalOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
   const { isOpen: isEditModalOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
+  const { dialogProps, confirm } = useConfirmDialog();
 
   const { showToast } = useToast();
   const { clients, addClient, updateClient, deleteClient, getClientCountsByStatus } = useClients();
@@ -40,8 +43,15 @@ export default function ClientsPage() {
 
   const statusCounts = getClientCountsByStatus();
 
-  const handleDeleteClient = (client: Client) => {
-    if (confirm(`Are you sure you want to delete "${client.name}"? This will also delete all their sessions and notes. This cannot be undone.`)) {
+  const handleDeleteClient = async (client: Client) => {
+    const confirmed = await confirm({
+      title: "Delete Client",
+      message: `Are you sure you want to delete "${client.name}"? This will also delete all their sessions and notes. This cannot be undone.`,
+      confirmLabel: "Delete",
+      cancelLabel: "Cancel",
+      variant: "danger",
+    });
+    if (confirmed) {
       deleteClient(client.id);
       showToast("Client deleted", "info");
     }
@@ -81,6 +91,8 @@ export default function ClientsPage() {
         }}
       />
 
+      <ConfirmDialog {...dialogProps} />
+
       {/* Stats Summary */}
       <div className="mb-6 flex flex-wrap gap-4 text-sm">
         <span className="text-gray-600 dark:text-gray-400">
@@ -112,8 +124,98 @@ export default function ClientsPage() {
         />
       </div>
 
-      {/* Clients Table */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3">
+        {filteredClients.length > 0 ? (
+          filteredClients.map((client) => {
+            const lastSession = getLastSessionForClient(client.id);
+            const nextSession = getNextSessionForClient(client.id);
+
+            return (
+              <div
+                key={client.id}
+                className="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]"
+              >
+                <Link href={`/clients/${client.id}`} className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                    {getInitials(client.name)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-gray-900 dark:text-white truncate">
+                        {client.name}
+                      </p>
+                      <StatusBadge status={client.status} />
+                    </div>
+                    {client.email && (
+                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                        {client.email}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+
+                {client.tags.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1">
+                    {client.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-3 flex items-center justify-between text-sm">
+                  <div className="text-gray-500 dark:text-gray-400">
+                    {nextSession ? (
+                      <span>Next: {formatDate(nextSession.dateTime)}</span>
+                    ) : lastSession ? (
+                      <span>Last: {formatRelativeTime(lastSession.dateTime)}</span>
+                    ) : (
+                      <span>No sessions</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setEditingClient(client);
+                        openEditModal();
+                      }}
+                      className="font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleDeleteClient(client);
+                      }}
+                      className="font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        ) : (
+          <div className="rounded-xl border border-gray-200 bg-white p-12 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+            <p className="text-gray-500 dark:text-gray-400">
+              {searchQuery
+                ? "No clients found matching your search."
+                : "No clients yet. Add your first client to get started."}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>

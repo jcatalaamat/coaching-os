@@ -9,7 +9,9 @@ import Button from "@/components/ui/button/Button";
 import { ScheduleSessionModal } from "@/components/sessions/ScheduleSessionModal";
 import { AddNoteModal } from "@/components/notes/AddNoteModal";
 import { EditNoteModal } from "@/components/notes/EditNoteModal";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog/ConfirmDialog";
 import { useModal } from "@/hooks/useModal";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useClients, useSessions, useNotes, usePrograms } from "@/lib/store/useStore";
 import { useToast } from "@/context/ToastContext";
 import { Note } from "@/types/entities";
@@ -32,6 +34,7 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
   const { isOpen: isScheduleModalOpen, openModal: openScheduleModal, closeModal: closeScheduleModal } = useModal();
   const { isOpen: isNoteModalOpen, openModal: openNoteModal, closeModal: closeNoteModal } = useModal();
   const { isOpen: isEditNoteModalOpen, openModal: openEditNoteModal, closeModal: closeEditNoteModal } = useModal();
+  const { dialogProps, confirm } = useConfirmDialog();
 
   const { showToast } = useToast();
   const { getClientById } = useClients();
@@ -144,11 +147,22 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
           updateNote(noteData.id, noteData);
           showToast("Note updated successfully");
         }}
-        onDelete={(noteId) => {
-          deleteNote(noteId);
-          showToast("Note deleted", "info");
+        onDelete={async (noteId) => {
+          const confirmed = await confirm({
+            title: "Delete Note",
+            message: "Are you sure you want to delete this note? This cannot be undone.",
+            confirmLabel: "Delete",
+            cancelLabel: "Cancel",
+            variant: "danger",
+          });
+          if (confirmed) {
+            deleteNote(noteId);
+            showToast("Note deleted", "info");
+          }
         }}
       />
+
+      <ConfirmDialog {...dialogProps} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Left Column */}

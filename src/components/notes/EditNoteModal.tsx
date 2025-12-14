@@ -44,10 +44,8 @@ export function EditNoteModal({ isOpen, onClose, note, onSave, onDelete }: EditN
   };
 
   const handleDelete = () => {
-    if (confirm("Are you sure you want to delete this note? This cannot be undone.")) {
-      onDelete?.(note.id);
-      onClose();
-    }
+    onDelete?.(note.id);
+    onClose();
   };
 
   return (

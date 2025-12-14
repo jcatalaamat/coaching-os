@@ -5,7 +5,9 @@ import { PageHeader } from "@/components/common/PageHeader";
 import Button from "@/components/ui/button/Button";
 import { CreateProgramModal } from "@/components/programs/CreateProgramModal";
 import { EditProgramModal } from "@/components/programs/EditProgramModal";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog/ConfirmDialog";
 import { useModal } from "@/hooks/useModal";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { usePrograms } from "@/lib/store/useStore";
 import { useToast } from "@/context/ToastContext";
 import { Program } from "@/types/entities";
@@ -21,6 +23,7 @@ export default function ProgramsPage() {
   const [editingProgram, setEditingProgram] = useState<Program | null>(null);
   const { isOpen: isCreateModalOpen, openModal: openCreateModal, closeModal: closeCreateModal } = useModal();
   const { isOpen: isEditModalOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
+  const { dialogProps, confirm } = useConfirmDialog();
   const { showToast } = useToast();
   const { programs, addProgram, updateProgram, deleteProgram, getClientsInProgramCount } = usePrograms();
 
@@ -70,11 +73,23 @@ export default function ProgramsPage() {
           updateProgram(programData.id, programData);
           showToast("Program updated successfully");
         }}
-        onDelete={(programId) => {
-          deleteProgram(programId);
-          showToast("Program deleted", "info");
+        onDelete={async (programId) => {
+          const program = programs.find(p => p.id === programId);
+          const confirmed = await confirm({
+            title: "Delete Program",
+            message: `Are you sure you want to delete "${program?.name}"? This cannot be undone.`,
+            confirmLabel: "Delete",
+            cancelLabel: "Cancel",
+            variant: "danger",
+          });
+          if (confirmed) {
+            deleteProgram(programId);
+            showToast("Program deleted", "info");
+          }
         }}
       />
+
+      <ConfirmDialog {...dialogProps} />
 
       {/* Stats Summary */}
       <div className="mb-6 flex flex-wrap gap-4 text-sm">

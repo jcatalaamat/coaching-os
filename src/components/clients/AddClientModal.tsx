@@ -27,17 +27,45 @@ const statusOptions = [
   { value: "completed", label: "Completed" },
 ];
 
+interface FormErrors {
+  name?: string;
+  email?: string;
+}
+
 export function AddClientModal({ isOpen, onClose, onSave }: AddClientModalProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [status, setStatus] = useState<ClientStatus>("lead");
   const [tags, setTags] = useState("");
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const validateEmail = (email: string): boolean => {
+    if (!email) return true; // Email is optional
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validate = (): FormErrors => {
+    const newErrors: FormErrors = {};
+    if (!name.trim()) {
+      newErrors.name = "Name is required";
+    }
+    if (email && !validateEmail(email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+    return newErrors;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name.trim()) return;
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    setTouched({ name: true, email: true });
+
+    if (Object.keys(validationErrors).length > 0) return;
 
     const tagArray = tags
       .split(",")
@@ -58,6 +86,8 @@ export function AddClientModal({ isOpen, onClose, onSave }: AddClientModalProps)
     setPhone("");
     setStatus("lead");
     setTags("");
+    setErrors({});
+    setTouched({});
     onClose();
   };
 
@@ -67,7 +97,14 @@ export function AddClientModal({ isOpen, onClose, onSave }: AddClientModalProps)
     setPhone("");
     setStatus("lead");
     setTags("");
+    setErrors({});
+    setTouched({});
     onClose();
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    setErrors(validate());
   };
 
   return (
@@ -87,7 +124,12 @@ export function AddClientModal({ isOpen, onClose, onSave }: AddClientModalProps)
               placeholder="Enter client name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              onBlur={() => handleBlur("name")}
+              error={touched.name && errors.name ? true : false}
             />
+            {touched.name && errors.name && (
+              <p className="mt-1 text-xs text-red-500">{errors.name}</p>
+            )}
           </div>
 
           <div>
@@ -97,7 +139,12 @@ export function AddClientModal({ isOpen, onClose, onSave }: AddClientModalProps)
               placeholder="client@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => handleBlur("email")}
+              error={touched.email && errors.email ? true : false}
             />
+            {touched.email && errors.email && (
+              <p className="mt-1 text-xs text-red-500">{errors.email}</p>
+            )}
           </div>
 
           <div>

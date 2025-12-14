@@ -71,10 +71,8 @@ export function EditProgramModal({ isOpen, onClose, program, onSave, onDelete }:
   };
 
   const handleDelete = () => {
-    if (confirm(`Are you sure you want to delete "${program.name}"? This cannot be undone.`)) {
-      onDelete?.(program.id);
-      onClose();
-    }
+    onDelete?.(program.id);
+    onClose();
   };
 
   return (

@@ -310,6 +310,16 @@ export function getThisWeekSessions(): Session[] {
     .sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
 }
 
+export function getThisMonthSessions(): Session[] {
+  const today = new Date();
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
+
+  return getSessions()
+    .filter((s) => s.dateTime >= startOfMonth && s.dateTime <= endOfMonth)
+    .sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
+}
+
 export function getActiveClientsCount(): number {
   return getClients().filter((c) => c.status === "active").length;
 }
