@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useMemo } from "react";
+import { use, useMemo, useState } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -8,8 +8,11 @@ import { StatusBadge } from "@/components/common/StatusBadge";
 import Button from "@/components/ui/button/Button";
 import { ScheduleSessionModal } from "@/components/sessions/ScheduleSessionModal";
 import { AddNoteModal } from "@/components/notes/AddNoteModal";
+import { EditNoteModal } from "@/components/notes/EditNoteModal";
 import { useModal } from "@/hooks/useModal";
 import { useClients, useSessions, useNotes, usePrograms } from "@/lib/store/useStore";
+import { useToast } from "@/context/ToastContext";
+import { Note } from "@/types/entities";
 import {
   formatDate,
   formatDateTime,
@@ -24,12 +27,16 @@ interface ClientDetailPageProps {
 
 export default function ClientDetailPage({ params }: ClientDetailPageProps) {
   const { clientId } = use(params);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
+
   const { isOpen: isScheduleModalOpen, openModal: openScheduleModal, closeModal: closeScheduleModal } = useModal();
   const { isOpen: isNoteModalOpen, openModal: openNoteModal, closeModal: closeNoteModal } = useModal();
+  const { isOpen: isEditNoteModalOpen, openModal: openEditNoteModal, closeModal: closeEditNoteModal } = useModal();
 
+  const { showToast } = useToast();
   const { getClientById } = useClients();
   const { getSessionsForClient, getUpcomingSessions, getPastSessions, addSession } = useSessions();
-  const { getNotesForClient, addNote } = useNotes();
+  const { getNotesForClient, addNote, updateNote, deleteNote } = useNotes();
   const { getProgramById } = usePrograms();
 
   const client = getClientById(clientId);
@@ -107,6 +114,7 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
             status: "scheduled",
             location: sessionData.location,
           });
+          showToast("Session scheduled successfully");
         }}
       />
 
@@ -121,6 +129,24 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
             title: noteData.title || undefined,
             content: noteData.content,
           });
+          showToast("Note added successfully");
+        }}
+      />
+
+      <EditNoteModal
+        isOpen={isEditNoteModalOpen}
+        onClose={() => {
+          setEditingNote(null);
+          closeEditNoteModal();
+        }}
+        note={editingNote}
+        onSave={(noteData) => {
+          updateNote(noteData.id, noteData);
+          showToast("Note updated successfully");
+        }}
+        onDelete={(noteId) => {
+          deleteNote(noteId);
+          showToast("Note deleted", "info");
         }}
       />
 
@@ -313,21 +339,32 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
                     {/* Timeline dot */}
                     <div className="absolute -left-[5px] top-0 h-3 w-3 rounded-full bg-blue-500" />
 
-                    <div className="rounded-lg bg-gray-50 p-4 dark:bg-gray-800/50">
+                    <div className="group rounded-lg bg-gray-50 p-4 dark:bg-gray-800/50">
                       <div className="flex items-start justify-between">
-                        <div>
+                        <div className="flex-1">
                           {note.title && (
                             <h4 className="font-medium text-gray-900 dark:text-white">
                               {note.title}
                             </h4>
                           )}
-                          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                          <p className="mt-1 text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
                             {note.content}
                           </p>
                         </div>
-                        <span className="ml-4 shrink-0 text-xs text-gray-400">
-                          {formatRelativeTime(note.createdAt)}
-                        </span>
+                        <div className="ml-4 flex shrink-0 items-center gap-2">
+                          <span className="text-xs text-gray-400">
+                            {formatRelativeTime(note.createdAt)}
+                          </span>
+                          <button
+                            onClick={() => {
+                              setEditingNote(note);
+                              openEditNoteModal();
+                            }}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                          >
+                            Edit
+                          </button>
+                        </div>
                       </div>
                       {note.sessionId && (
                         <p className="mt-2 text-xs text-gray-400">

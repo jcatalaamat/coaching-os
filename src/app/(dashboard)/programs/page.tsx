@@ -199,7 +199,7 @@ export default function ProgramsPage() {
           <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
             Create your first coaching program to start enrolling clients
           </p>
-          <Button size="sm">
+          <Button size="sm" onClick={openCreateModal}>
             Create Your First Program
           </Button>
         </div>
