@@ -6,6 +6,7 @@ import { CalendarHeader } from "@/components/calendar/CalendarHeader";
 import { MonthView } from "@/components/calendar/MonthView";
 import { WeekView } from "@/components/calendar/WeekView";
 import { ScheduleSessionModal } from "@/components/sessions/ScheduleSessionModal";
+import { SessionDetailsModal } from "@/components/sessions/SessionDetailsModal";
 import { useModal } from "@/hooks/useModal";
 import { useClients, useSessions } from "@/lib/store/useStore";
 import { Session } from "@/types/entities";
@@ -23,8 +24,10 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [preselectedDate, setPreselectedDate] = useState<string | null>(null);
   const [preselectedTime, setPreselectedTime] = useState<string | null>(null);
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
 
-  const { isOpen, openModal, closeModal } = useModal();
+  const { isOpen: isScheduleOpen, openModal: openScheduleModal, closeModal: closeScheduleModal } = useModal();
+  const { isOpen: isDetailsOpen, openModal: openDetailsModal, closeModal: closeDetailsModal } = useModal();
   const { sessions, addSession } = useSessions();
   const { getClientById } = useClients();
 
@@ -73,14 +76,14 @@ export default function CalendarPage() {
   const handleScheduleClick = () => {
     setPreselectedDate(null);
     setPreselectedTime(null);
-    openModal();
+    openScheduleModal();
   };
 
   const handleDayClick = (date: Date) => {
     const dateStr = date.toISOString().split("T")[0];
     setPreselectedDate(dateStr);
     setPreselectedTime("09:00");
-    openModal();
+    openScheduleModal();
   };
 
   const handleTimeSlotClick = (date: Date, hour: number) => {
@@ -88,19 +91,23 @@ export default function CalendarPage() {
     const timeStr = `${hour.toString().padStart(2, "0")}:00`;
     setPreselectedDate(dateStr);
     setPreselectedTime(timeStr);
-    openModal();
+    openScheduleModal();
   };
 
   const handleSessionClick = (session: Session) => {
-    // For now, just alert session details - could open edit modal later
-    const client = getClientById(session.clientId);
-    alert(`Session with ${client?.name || "Unknown"}\n${session.dateTime.toLocaleString()}\nStatus: ${session.status}`);
+    setSelectedSession(session);
+    openDetailsModal();
   };
 
-  const handleModalClose = () => {
+  const handleScheduleModalClose = () => {
     setPreselectedDate(null);
     setPreselectedTime(null);
-    closeModal();
+    closeScheduleModal();
+  };
+
+  const handleDetailsModalClose = () => {
+    setSelectedSession(null);
+    closeDetailsModal();
   };
 
   return (
@@ -139,8 +146,8 @@ export default function CalendarPage() {
       )}
 
       <ScheduleSessionModal
-        isOpen={isOpen}
-        onClose={handleModalClose}
+        isOpen={isScheduleOpen}
+        onClose={handleScheduleModalClose}
         preselectedDate={preselectedDate || undefined}
         preselectedTime={preselectedTime || undefined}
         onSave={(sessionData) => {
@@ -154,6 +161,12 @@ export default function CalendarPage() {
             location: sessionData.location,
           });
         }}
+      />
+
+      <SessionDetailsModal
+        isOpen={isDetailsOpen}
+        onClose={handleDetailsModalClose}
+        session={selectedSession}
       />
     </>
   );
