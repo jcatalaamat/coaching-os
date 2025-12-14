@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { PageHeader } from "@/components/common/PageHeader";
 import Button from "@/components/ui/button/Button";
 import { CreateProgramModal } from "@/components/programs/CreateProgramModal";
+import { EditProgramModal } from "@/components/programs/EditProgramModal";
 import { useModal } from "@/hooks/useModal";
 import { usePrograms } from "@/lib/store/useStore";
+import { Program } from "@/types/entities";
 import { formatCurrency } from "@/lib/utils/formatters";
 
 const programTypeColors: Record<string, string> = {
@@ -14,8 +17,20 @@ const programTypeColors: Record<string, string> = {
 };
 
 export default function ProgramsPage() {
+  const [editingProgram, setEditingProgram] = useState<Program | null>(null);
   const { isOpen: isCreateModalOpen, openModal: openCreateModal, closeModal: closeCreateModal } = useModal();
-  const { programs, addProgram, getClientsInProgramCount } = usePrograms();
+  const { isOpen: isEditModalOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
+  const { programs, addProgram, updateProgram, deleteProgram, getClientsInProgramCount } = usePrograms();
+
+  const handleEditClick = (program: Program) => {
+    setEditingProgram(program);
+    openEditModal();
+  };
+
+  const handleEditModalClose = () => {
+    setEditingProgram(null);
+    closeEditModal();
+  };
 
   return (
     <>
@@ -41,6 +56,18 @@ export default function ProgramsPage() {
             currency: programData.currency as "USD" | "EUR" | "GBP",
             numberOfSessions: programData.numberOfSessions || undefined,
           });
+        }}
+      />
+
+      <EditProgramModal
+        isOpen={isEditModalOpen}
+        onClose={handleEditModalClose}
+        program={editingProgram}
+        onSave={(programData) => {
+          updateProgram(programData.id, programData);
+        }}
+        onDelete={(programId) => {
+          deleteProgram(programId);
         }}
       />
 
@@ -136,11 +163,13 @@ export default function ProgramsPage() {
                 </div>
 
                 <div className="mt-4 flex gap-2">
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => handleEditClick(program)}
+                  >
                     Edit
-                  </Button>
-                  <Button size="sm" className="flex-1">
-                    View Details
                   </Button>
                 </div>
               </div>

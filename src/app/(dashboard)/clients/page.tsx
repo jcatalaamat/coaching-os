@@ -22,7 +22,7 @@ export default function ClientsPage() {
   const { isOpen: isAddModalOpen, openModal: openAddModal, closeModal: closeAddModal } = useModal();
   const { isOpen: isEditModalOpen, openModal: openEditModal, closeModal: closeEditModal } = useModal();
 
-  const { clients, addClient, updateClient, getClientCountsByStatus } = useClients();
+  const { clients, addClient, updateClient, deleteClient, getClientCountsByStatus } = useClients();
   const { getLastSessionForClient, getNextSessionForClient } = useSessions();
 
   const filteredClients = useMemo(() => {
@@ -37,6 +37,12 @@ export default function ClientsPage() {
   }, [searchQuery, clients]);
 
   const statusCounts = getClientCountsByStatus();
+
+  const handleDeleteClient = (client: Client) => {
+    if (confirm(`Are you sure you want to delete "${client.name}"? This will also delete all their sessions and notes. This cannot be undone.`)) {
+      deleteClient(client.id);
+    }
+  };
 
   return (
     <>
@@ -192,16 +198,27 @@ export default function ClientsPage() {
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setEditingClient(client);
-                            openEditModal();
-                          }}
-                          className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                        >
-                          Edit
-                        </button>
+                        <div className="flex items-center justify-end gap-3">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setEditingClient(client);
+                              openEditModal();
+                            }}
+                            className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleDeleteClient(client);
+                            }}
+                            className="text-sm font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

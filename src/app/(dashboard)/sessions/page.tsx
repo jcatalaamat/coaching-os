@@ -6,8 +6,10 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import Button from "@/components/ui/button/Button";
 import { ScheduleSessionModal } from "@/components/sessions/ScheduleSessionModal";
+import { SessionDetailsModal } from "@/components/sessions/SessionDetailsModal";
 import { useModal } from "@/hooks/useModal";
 import { useSessions, useClients, usePrograms } from "@/lib/store/useStore";
+import { Session } from "@/types/entities";
 import {
   formatDateTime,
   formatDuration,
@@ -20,7 +22,10 @@ type StatusFilter = "all" | "scheduled" | "completed" | "cancelled";
 export default function SessionsPage() {
   const [dateRange, setDateRange] = useState<DateRange>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+
   const { isOpen: isScheduleModalOpen, openModal: openScheduleModal, closeModal: closeScheduleModal } = useModal();
+  const { isOpen: isDetailsModalOpen, openModal: openDetailsModal, closeModal: closeDetailsModal } = useModal();
 
   const { sessions, addSession, filterSessionsByStatus, filterSessionsByDateRange } = useSessions();
   const { getClientById } = useClients();
@@ -62,6 +67,16 @@ export default function SessionsPage() {
   const completedCount = sessions.filter((s) => s.status === "completed").length;
   const cancelledCount = sessions.filter((s) => s.status === "cancelled").length;
 
+  const handleSessionClick = (session: Session) => {
+    setSelectedSession(session);
+    openDetailsModal();
+  };
+
+  const handleDetailsModalClose = () => {
+    setSelectedSession(null);
+    closeDetailsModal();
+  };
+
   return (
     <>
       <PageHeader
@@ -88,6 +103,12 @@ export default function SessionsPage() {
             location: sessionData.location,
           });
         }}
+      />
+
+      <SessionDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={handleDetailsModalClose}
+        session={selectedSession}
       />
 
       {/* Stats Summary */}
@@ -169,7 +190,8 @@ export default function SessionsPage() {
                   return (
                     <tr
                       key={session.id}
-                      className="hover:bg-gray-50 dark:hover:bg-white/[0.02]"
+                      onClick={() => handleSessionClick(session)}
+                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-white/[0.02]"
                     >
                       <td className="px-6 py-4">
                         <span className="font-medium text-gray-900 dark:text-white">
@@ -181,6 +203,7 @@ export default function SessionsPage() {
                           <Link
                             href={`/clients/${client.id}`}
                             className="flex items-center gap-3"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                               {getInitials(client.name)}
