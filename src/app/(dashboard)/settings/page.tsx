@@ -3,8 +3,24 @@
 import { useState } from "react";
 import { PageHeader } from "@/components/common/PageHeader";
 import Button from "@/components/ui/button/Button";
-import { useStore } from "@/lib/store/useStore";
+import { useStore, useSessionTemplates, usePrograms } from "@/lib/store/useStore";
 import { useTheme } from "@/context/ThemeContext";
+import { useToast } from "@/context/ToastContext";
+import { formatDuration } from "@/lib/utils/formatters";
+
+interface TemplateFormData {
+  name: string;
+  durationMinutes: string;
+  location: string;
+  programId: string;
+}
+
+const emptyTemplateForm: TemplateFormData = {
+  name: "",
+  durationMinutes: "60",
+  location: "Zoom",
+  programId: "",
+};
 
 export default function SettingsPage() {
   const [name, setName] = useState("Coach Demo");
@@ -15,6 +31,67 @@ export default function SettingsPage() {
 
   const { theme, toggleTheme } = useTheme();
   const store = useStore();
+  const { templates, addTemplate, updateTemplate, deleteTemplate } = useSessionTemplates();
+  const { programs } = usePrograms();
+  const { showToast } = useToast();
+
+  // Template management state
+  const [templateForm, setTemplateForm] = useState<TemplateFormData>(emptyTemplateForm);
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
+  const [showTemplateForm, setShowTemplateForm] = useState(false);
+
+  const handleSaveTemplate = () => {
+    if (!templateForm.name.trim()) {
+      showToast("Please enter a template name", "error");
+      return;
+    }
+
+    const templateData = {
+      name: templateForm.name.trim(),
+      durationMinutes: parseInt(templateForm.durationMinutes),
+      location: templateForm.location,
+      programId: templateForm.programId || undefined,
+    };
+
+    if (editingTemplateId) {
+      updateTemplate(editingTemplateId, templateData);
+      showToast("Template updated", "success");
+    } else {
+      addTemplate(templateData);
+      showToast("Template created", "success");
+    }
+
+    setTemplateForm(emptyTemplateForm);
+    setEditingTemplateId(null);
+    setShowTemplateForm(false);
+  };
+
+  const handleEditTemplate = (templateId: string) => {
+    const template = templates.find((t) => t.id === templateId);
+    if (template) {
+      setTemplateForm({
+        name: template.name,
+        durationMinutes: template.durationMinutes.toString(),
+        location: template.location,
+        programId: template.programId || "",
+      });
+      setEditingTemplateId(templateId);
+      setShowTemplateForm(true);
+    }
+  };
+
+  const handleDeleteTemplate = (templateId: string) => {
+    if (confirm("Are you sure you want to delete this template?")) {
+      deleteTemplate(templateId);
+      showToast("Template deleted", "success");
+    }
+  };
+
+  const handleCancelTemplateForm = () => {
+    setTemplateForm(emptyTemplateForm);
+    setEditingTemplateId(null);
+    setShowTemplateForm(false);
+  };
 
   const handleExportClients = () => {
     const clients = store.clients.clients;
@@ -240,6 +317,163 @@ export default function SettingsPage() {
               </select>
             </div>
           </div>
+        </div>
+
+        {/* Session Templates */}
+        <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Session Templates
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Create reusable session configurations for quick scheduling
+              </p>
+            </div>
+            {!showTemplateForm && (
+              <Button size="sm" onClick={() => setShowTemplateForm(true)}>
+                Add Template
+              </Button>
+            )}
+          </div>
+
+          {/* Template Form */}
+          {showTemplateForm && (
+            <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
+              <h3 className="mb-4 font-medium text-gray-900 dark:text-white">
+                {editingTemplateId ? "Edit Template" : "New Template"}
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Template Name
+                  </label>
+                  <input
+                    type="text"
+                    value={templateForm.name}
+                    onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })}
+                    placeholder="e.g., Standard 1:1 Session"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Duration
+                    </label>
+                    <select
+                      value={templateForm.durationMinutes}
+                      onChange={(e) => setTemplateForm({ ...templateForm, durationMinutes: e.target.value })}
+                      className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                    >
+                      <option value="30">30 minutes</option>
+                      <option value="45">45 minutes</option>
+                      <option value="60">60 minutes</option>
+                      <option value="90">90 minutes</option>
+                      <option value="120">2 hours</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Location
+                    </label>
+                    <select
+                      value={templateForm.location}
+                      onChange={(e) => setTemplateForm({ ...templateForm, location: e.target.value })}
+                      className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                    >
+                      <option value="Zoom">Zoom</option>
+                      <option value="Google Meet">Google Meet</option>
+                      <option value="Phone">Phone Call</option>
+                      <option value="In-Person">In-Person</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Program (Optional)
+                    </label>
+                    <select
+                      value={templateForm.programId}
+                      onChange={(e) => setTemplateForm({ ...templateForm, programId: e.target.value })}
+                      className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+                    >
+                      <option value="">No program</option>
+                      {programs.map((program) => (
+                        <option key={program.id} value={program.id}>
+                          {program.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleSaveTemplate}>
+                    {editingTemplateId ? "Update" : "Create"} Template
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={handleCancelTemplateForm}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Template List */}
+          {templates.length > 0 ? (
+            <div className="space-y-3">
+              {templates.map((template) => {
+                const program = programs.find((p) => p.id === template.programId);
+                return (
+                  <div
+                    key={template.id}
+                    className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800/30"
+                  >
+                    <div>
+                      <h4 className="font-medium text-gray-900 dark:text-white">
+                        {template.name}
+                      </h4>
+                      <div className="mt-1 flex flex-wrap gap-2 text-sm text-gray-500 dark:text-gray-400">
+                        <span>{formatDuration(template.durationMinutes)}</span>
+                        <span>•</span>
+                        <span>{template.location}</span>
+                        {program && (
+                          <>
+                            <span>•</span>
+                            <span>{program.name}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEditTemplate(template.id)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDeleteTemplate(template.id)}
+                        className="text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              No templates yet. Create one to speed up session scheduling.
+            </p>
+          )}
         </div>
 
         {/* Data Export */}

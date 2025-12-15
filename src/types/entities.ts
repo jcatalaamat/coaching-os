@@ -52,6 +52,16 @@ export interface Session {
   location: string;
 }
 
+// Session template - reusable session configurations
+export interface SessionTemplate {
+  id: string;
+  coachId: string;
+  name: string;
+  durationMinutes: number;
+  location: string;
+  programId?: string;
+}
+
 // Note entity - session notes and observations
 export interface Note {
   id: string;

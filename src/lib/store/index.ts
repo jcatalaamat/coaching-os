@@ -1,17 +1,19 @@
 // localStorage-based data store for coaching OS
 // Provides persistence for demo/MVP without a backend
 
-import { Client, Session, Note, Program } from "@/types/entities";
+import { Client, Session, Note, Program, SessionTemplate } from "@/types/entities";
 import { mockClients } from "@/lib/mock-data/clients";
 import { mockSessions } from "@/lib/mock-data/sessions";
 import { mockNotes } from "@/lib/mock-data/notes";
 import { mockPrograms } from "@/lib/mock-data/programs";
+import { mockSessionTemplates } from "@/lib/mock-data/session-templates";
 
 const STORAGE_KEYS = {
   clients: "coaching-os-clients",
   sessions: "coaching-os-sessions",
   notes: "coaching-os-notes",
   programs: "coaching-os-programs",
+  sessionTemplates: "coaching-os-session-templates",
 } as const;
 
 // Helper to safely parse JSON from localStorage
@@ -363,4 +365,45 @@ export function filterSessionsByDateRange(sessions: Session[], range: string): S
     default:
       return sessions;
   }
+}
+
+// ============ SESSION TEMPLATES ============
+
+export function getSessionTemplates(): SessionTemplate[] {
+  return getFromStorage<SessionTemplate[]>(STORAGE_KEYS.sessionTemplates, mockSessionTemplates);
+}
+
+export function getSessionTemplateById(id: string): SessionTemplate | undefined {
+  return getSessionTemplates().find((t) => t.id === id);
+}
+
+export function addSessionTemplate(template: Omit<SessionTemplate, "id" | "coachId">): SessionTemplate {
+  const templates = getSessionTemplates();
+  const newTemplate: SessionTemplate = {
+    ...template,
+    id: generateId(),
+    coachId: "coach-1",
+  };
+  templates.push(newTemplate);
+  saveToStorage(STORAGE_KEYS.sessionTemplates, templates);
+  return newTemplate;
+}
+
+export function updateSessionTemplate(id: string, updates: Partial<SessionTemplate>): SessionTemplate | undefined {
+  const templates = getSessionTemplates();
+  const index = templates.findIndex((t) => t.id === id);
+  if (index === -1) return undefined;
+
+  templates[index] = { ...templates[index], ...updates };
+  saveToStorage(STORAGE_KEYS.sessionTemplates, templates);
+  return templates[index];
+}
+
+export function deleteSessionTemplate(id: string): boolean {
+  const templates = getSessionTemplates();
+  const filtered = templates.filter((t) => t.id !== id);
+  if (filtered.length === templates.length) return false;
+
+  saveToStorage(STORAGE_KEYS.sessionTemplates, filtered);
+  return true;
 }

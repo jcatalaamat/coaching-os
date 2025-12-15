@@ -280,3 +280,33 @@ export function formatHour(hour: number): string {
     hour12: true,
   }).format(date);
 }
+
+/**
+ * Format countdown to a future date as "2h 30m" or "Starting soon"
+ */
+export function formatCountdown(date: Date): string {
+  const now = new Date();
+  const target = new Date(date);
+  const diffMs = target.getTime() - now.getTime();
+
+  if (diffMs <= 0) {
+    return "Starting now";
+  }
+
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 5) {
+    return "Starting soon";
+  } else if (diffMins < 60) {
+    return `in ${diffMins}m`;
+  } else if (diffHours < 24) {
+    const mins = diffMins % 60;
+    return mins > 0 ? `in ${diffHours}h ${mins}m` : `in ${diffHours}h`;
+  } else if (diffDays === 1) {
+    return "Tomorrow";
+  } else {
+    return `in ${diffDays} days`;
+  }
+}

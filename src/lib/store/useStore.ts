@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Client, Session, Note, Program } from "@/types/entities";
+import { Client, Session, Note, Program, SessionTemplate } from "@/types/entities";
 import * as store from "./index";
 
 // Custom hook for using the store with automatic re-renders
@@ -221,6 +221,57 @@ export function usePrograms() {
     refresh,
     getProgramById: store.getProgramById,
     getClientsInProgramCount: store.getClientsInProgramCount,
+  };
+}
+
+export function useSessionTemplates() {
+  const [templates, setTemplates] = useState<SessionTemplate[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const refresh = useCallback(() => {
+    setTemplates(store.getSessionTemplates());
+  }, []);
+
+  useEffect(() => {
+    refresh();
+    setIsLoading(false);
+  }, [refresh]);
+
+  const addTemplate = useCallback(
+    (template: Omit<SessionTemplate, "id" | "coachId">) => {
+      const newTemplate = store.addSessionTemplate(template);
+      refresh();
+      return newTemplate;
+    },
+    [refresh]
+  );
+
+  const updateTemplate = useCallback(
+    (id: string, updates: Partial<SessionTemplate>) => {
+      const updated = store.updateSessionTemplate(id, updates);
+      refresh();
+      return updated;
+    },
+    [refresh]
+  );
+
+  const deleteTemplate = useCallback(
+    (id: string) => {
+      const result = store.deleteSessionTemplate(id);
+      refresh();
+      return result;
+    },
+    [refresh]
+  );
+
+  return {
+    templates,
+    isLoading,
+    addTemplate,
+    updateTemplate,
+    deleteTemplate,
+    refresh,
+    getTemplateById: store.getSessionTemplateById,
   };
 }
 

@@ -9,21 +9,26 @@ import {
   formatDuration,
   formatRelativeTime,
   formatCurrency,
+  formatCountdown,
   getInitials,
 } from "@/lib/utils/formatters";
 
 export default function DashboardPage() {
   const { clients, getClientById, getClientCountsByStatus } = useClients();
-  const { sessions, getTodaySessions, getThisWeekSessions, getThisMonthSessions } = useSessions();
+  const { sessions, getTodaySessions, getThisWeekSessions, getThisMonthSessions, getUpcomingSessions } = useSessions();
   const { getRecentNotes } = useNotes();
   const { programs, getProgramById, getClientsInProgramCount } = usePrograms();
 
   const todaySessions = getTodaySessions();
   const thisWeekSessions = getThisWeekSessions();
   const thisMonthSessions = getThisMonthSessions();
+  const upcomingSessions = getUpcomingSessions().slice(0, 3);
   const statusCounts = getClientCountsByStatus();
   const activeClients = statusCounts.active || 0;
   const recentNotes = getRecentNotes(5);
+
+  // Get next upcoming session for countdown
+  const nextSession = upcomingSessions[0];
 
   // Calculate completed sessions this month
   const completedThisMonth = thisMonthSessions.filter(s => s.status === "completed").length;
@@ -209,6 +214,53 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Next Session Countdown */}
+      {nextSession && (
+        <div className="mt-6 rounded-xl border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-5 dark:border-purple-800 dark:from-purple-900/20 dark:to-blue-900/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-800">
+                <svg
+                  className="h-6 w-6 text-purple-600 dark:text-purple-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-purple-600 dark:text-purple-400">
+                  Next Session
+                </p>
+                <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {getClientById(nextSession.clientId)?.name || "Unknown Client"}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {formatTime(nextSession.dateTime)} • {nextSession.location}
+                </p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                {formatCountdown(nextSession.dateTime)}
+              </p>
+              <Link
+                href={`/clients/${nextSession.clientId}`}
+                className="text-sm text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300"
+              >
+                View client →
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Client Status Breakdown */}
       <div className="mt-6 rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">

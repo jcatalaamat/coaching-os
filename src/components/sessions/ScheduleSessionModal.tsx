@@ -6,7 +6,7 @@ import Button from "@/components/ui/button/Button";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import Select from "@/components/form/Select";
-import { useClients, usePrograms } from "@/lib/store/useStore";
+import { useClients, usePrograms, useSessionTemplates } from "@/lib/store/useStore";
 
 interface ScheduleSessionModalProps {
   isOpen: boolean;
@@ -56,6 +56,7 @@ export function ScheduleSessionModal({
 
   const { clients } = useClients();
   const { programs } = usePrograms();
+  const { templates } = useSessionTemplates();
 
   // Update form when preselected values change
   useEffect(() => {
@@ -82,6 +83,25 @@ export function ScheduleSessionModal({
       label: program.name,
     })),
   ];
+
+  const templateOptions = [
+    { value: "", label: "No template" },
+    ...templates.map((template) => ({
+      value: template.id,
+      label: template.name,
+    })),
+  ];
+
+  const handleTemplateChange = (templateId: string) => {
+    const template = templates.find((t) => t.id === templateId);
+    if (template) {
+      setDuration(template.durationMinutes.toString());
+      setLocation(template.location);
+      if (template.programId) {
+        setProgramId(template.programId);
+      }
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,6 +144,22 @@ export function ScheduleSessionModal({
         </h4>
 
         <div className="space-y-5">
+          {/* Template Quick Fill */}
+          {templates.length > 0 && (
+            <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800/50">
+              <Label>Quick Fill from Template</Label>
+              <Select
+                options={templateOptions}
+                defaultValue=""
+                onChange={handleTemplateChange}
+                placeholder="Select a template..."
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Applies duration, location, and program from template
+              </p>
+            </div>
+          )}
+
           <div>
             <Label>
               Client <span className="text-red-500">*</span>
