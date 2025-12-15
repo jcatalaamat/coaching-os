@@ -154,6 +154,12 @@ export function getNotesForClient(clientId: string): Note[] {
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 }
 
+export function getNotesForSession(sessionId: string): Note[] {
+  return getNotes()
+    .filter((n) => n.sessionId === sessionId)
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+}
+
 export function addNote(note: Omit<Note, "id" | "coachId" | "createdAt">): Note {
   const notes = getNotes();
   const newNote: Note = {

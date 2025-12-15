@@ -167,6 +167,7 @@ export function useNotes() {
     refresh,
     getNoteById: store.getNoteById,
     getNotesForClient: store.getNotesForClient,
+    getNotesForSession: store.getNotesForSession,
     getRecentNotes: store.getRecentNotes,
   };
 }
